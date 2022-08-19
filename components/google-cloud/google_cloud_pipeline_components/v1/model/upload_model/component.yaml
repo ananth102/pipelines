@@ -19,10 +19,10 @@ description: |
 
             The model can be passed from an upstream step, or imported via an importer node.
             ```
-              from kfp.v2.components import importer_node
+              from kfp.v2.dsl import importer
               from google_cloud_pipeline_components.types import artifact_types
 
-              importer_spec = importer_node.importer(
+              importer_spec = importer(
                 artifact_uri='gs://managed-pipeline-gcpc-e2e-test/automl-tabular/model',
                 artifact_class=artifact_types.UnmanagedContainerModel,
                 metadata={
