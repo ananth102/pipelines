@@ -13,14 +13,22 @@
 # limitations under the License.
 """GCP launcher for batch prediction jobs based on the AI Platform SDK."""
 
+import json
+import logging
+import re
+import sys
+
 from . import job_remote_runner
-from .utils import artifact_util, json_util, error_util
 from google.api_core import retry
 from google.cloud.aiplatform.explain import ExplanationMetadata
-from google_cloud_pipeline_components.types.artifact_types import VertexBatchPredictionJob, BQTable
+from google_cloud_pipeline_components.types.artifact_types import BQTable
+from google_cloud_pipeline_components.types.artifact_types import VertexBatchPredictionJob
 from kfp.v2 import dsl
-import re
-import json
+from .utils import artifact_util
+from .utils import error_util
+from .utils import json_util
+from .utils import parser_util
+
 
 UNMANAGED_CONTAINER_MODEL_ARTIFACT_NAME = 'unmanaged_container_model'
 _BATCH_PREDICTION_RETRY_DEADLINE_SECONDS = 10.0 * 60.0
@@ -150,3 +158,47 @@ def create_batch_prediction_job(
     artifact_util.update_output_artifacts(executor_input, output_artifacts)
   except (ConnectionError, RuntimeError) as err:
     error_util.exit_with_internal_error(err.args[0])
+
+
+def _parse_args(args):
+  """Parse command line arguments."""
+  parser, parsed_args = parser_util.parse_default_args(args)
+  # Parse the conditionally required arguments
+  parser.add_argument(
+      '--executor_input',
+      dest='executor_input',
+      type=str,
+      # executor_input is only needed for components that emit output artifacts.
+      required=True)
+  parsed_args, _ = parser.parse_known_args(args)
+  return vars(parsed_args)
+
+
+def main(argv):
+  """Main entry.
+
+  Expected input args are as follows:
+    Project - Required. The project of which the resource will be launched.
+    Region - Required. The region of which the resource will be launched.
+    Type - Required. GCP launcher is a single container. This Enum will
+        specify which resource to be launched.
+    Request payload - Required. The full serialized json of the resource spec.
+        Note this can contain the Pipeline Placeholders.
+    gcp_resources - placeholder output for returning job_id.
+
+  Args:
+    argv: A list of system arguments.
+  """
+  parsed_args = _parse_args(argv)
+  job_type = parsed_args['type']
+
+  if job_type != 'BatchPredictionJob':
+    raise ValueError('Incorrect job type: ' + job_type)
+
+  logging.info('Job started for type: ' + job_type)
+
+  create_batch_prediction_job(**parsed_args)
+
+
+if __name__ == '__main__':
+  main(sys.argv[1:])
