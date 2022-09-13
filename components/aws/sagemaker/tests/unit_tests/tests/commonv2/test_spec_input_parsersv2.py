@@ -5,14 +5,6 @@ from commonv2.spec_input_parsers import SpecInputParsers as par
 
 
 class SpecInputParsersTestCase(unittest.TestCase):
-    def test_nullable_string_argument(self):
-        self.assertIsNone(par.nullable_string_argument(""))
-        self.assertIsNone(par.nullable_string_argument(" "))
-        self.assertIsNone(par.nullable_string_argument("  "))
-
-        self.assertEqual("value", par.nullable_string_argument("value"))
-        self.assertEqual("value 1", par.nullable_string_argument("value 1"))
-
     def test_yaml_or_json_list(self):
         self.assertIsNone(par.yaml_or_json_list(""))
         self.assertEqual([], par.yaml_or_json_list("[ ]"))
