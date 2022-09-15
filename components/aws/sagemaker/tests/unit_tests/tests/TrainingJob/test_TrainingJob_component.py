@@ -6,7 +6,6 @@ import unittest
 
 from unittest.mock import patch, MagicMock
 
-
 class TrainingComponentTestCase(unittest.TestCase):
     REQUIRED_ARGS = TrainingSpecTestCase.REQUIRED_ARGS
 
