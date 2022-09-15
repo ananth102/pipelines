@@ -26,76 +26,70 @@ class TrainingComponentTestCase(unittest.TestCase):
         with patch(
             "TrainingJob.src.TrainingJob_component.SageMakerComponent._get_resource"
         ) as mock_get_resource:
-
-            mock_get_resource.return_value = {
-                "status": {"trainingJobStatus": "Starting"}
-            }
-            self.assertEqual(
-                self.component._get_job_status(),
-                SageMakerJobStatus(is_completed=False, raw_status="Starting"),
-            )
-
-            mock_get_resource.return_value = {
-                "status": {"trainingJobStatus": "Completed"}
-            }
-            self.assertEqual(
-                self.component._get_job_status(),
-                SageMakerJobStatus(
-                    is_completed=True, raw_status="Completed", has_error=False
-                ),
-            )
-
-            mock_get_resource.return_value = {
-                "status": {"trainingJobStatus": "Stopped"}
-            }
-            self.assertEqual(
-                self.component._get_job_status(),
-                SageMakerJobStatus(
-                    is_completed=True,
-                    raw_status="Stopped",
-                    has_error=True,
-                    error_message="Sagemaker job was stopped",
-                ),
-            )
-
-            mock_get_resource.return_value = {
-                "status": {"failureReason": "lolidk", "trainingJobStatus": "Failed"}
-            }
-
-            self.assertEqual(
-                self.component._get_job_status(),
-                SageMakerJobStatus(
-                    is_completed=True,
-                    raw_status="Failed",
-                    has_error=True,
-                    error_message="lolidk",
-                ),
-            )
-
-            debugRulesStat = [
-                {
-                    "lastModifiedTime": "2022-08-30T22:53:17Z",
-                    "ruleConfigurationName": "LossNotDecreasing",
-                    "ruleEvaluationStatus": "InProgress",
-                }
-            ]
-            profilerRulesStat = [
-                {
-                    "lastModifiedTime": "2022-08-30T22:53:17Z",
-                    "ruleConfigurationName": "ProfilerReport",
-                    "ruleEvaluationStatus": "InProgress",
-                }
-            ]
-            mock_get_resource.return_value = {
-                "status": {
-                    "trainingJobStatus": "Completed",
-                    "debugRuleEvaluationStatuses": debugRulesStat,
-                    "profilerRuleEvaluationStatuses": profilerRulesStat,
-                }
-            }
             with patch(
                 "TrainingJob.src.TrainingJob_component.SageMakerComponent._get_resource_synced_status"
             ) as mock_resource_sync:
+
+                mock_resource_sync.return_value = False                
+                
+                mock_get_resource.return_value = {
+                    "status": {"trainingJobStatus": "Starting"}
+                }
+                self.assertEqual(
+                    self.component._get_job_status(),
+                    SageMakerJobStatus(is_completed=False, raw_status="Starting"),
+                )
+
+                mock_resource_sync.return_value = True
+
+                mock_get_resource.return_value = {
+                    "status": {"trainingJobStatus": "Completed"}
+                }
+                self.assertEqual(
+                    self.component._get_job_status(),
+                    SageMakerJobStatus(
+                        is_completed=True, raw_status="Completed", has_error=False
+                    ),
+                )
+
+                mock_get_resource.return_value = {
+                    "status": {"trainingJobStatus": "Stopped"}
+                }
+                self.assertEqual(
+                    self.component._get_job_status(),
+                    SageMakerJobStatus(
+                        is_completed=True,
+                        raw_status="Stopped",
+                        has_error=True,
+                        error_message="Sagemaker job was stopped",
+                    ),
+                )
+
+                mock_get_resource.return_value = {
+                    "status": {"failureReason": "crash", "trainingJobStatus": "Failed"}
+                }
+
+                self.assertEqual(
+                    self.component._get_job_status(),
+                    SageMakerJobStatus(
+                        is_completed=True,
+                        raw_status="Failed",
+                        has_error=True,
+                        error_message="crash",
+                    ),
+                )
+            
+    def test_job_status_debugger(self):
+        with patch(
+            "TrainingJob.src.TrainingJob_component.SageMakerComponent._get_resource"
+        ) as mock_get_resource:
+            with patch(
+                "TrainingJob.src.TrainingJob_component.SageMakerComponent._get_resource_synced_status"
+            ) as mock_resource_sync:
+
+                mock_get_resource.return_value = {
+                    "status": {"trainingJobStatus": "Completed"}
+                }
 
                 mock_resource_sync.return_value = False
 

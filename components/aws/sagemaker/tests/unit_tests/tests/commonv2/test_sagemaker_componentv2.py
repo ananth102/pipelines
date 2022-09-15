@@ -378,26 +378,12 @@ class SageMakerComponentTestCase(unittest.TestCase):
         with patch.object(
             SageMakerComponent, "_get_resource_exists", return_value=False
         ) as mock_exists:
-            _, ret_val = self.component._delete_custom_resource(1, 0.01)
+            _, ret_val = self.component._delete_custom_resource()
             mock_custom_objects_api().delete_cluster_custom_object.assert_called_once_with(
                 "group-test", "version-test", "plural-test", "ack-job-name-test"
             )
             self.assertTrue(ret_val)
 
-        with patch.object(
-            SageMakerComponent, "_get_resource_exists", return_value=True
-        ) as mock_exists:
-            self.component.namespace = "namespace-test"
-            _, ret_val = self.component._delete_custom_resource(4, 0.01)
-            mock_custom_objects_api().delete_namespaced_custom_object.assert_called_once_with(
-                "group-test",
-                "version-test",
-                "namespace-test",
-                "plural-test",
-                "ack-job-name-test",
-            )
-            self.assertEqual(mock_exists.call_count, 4)
-            self.assertFalse(ret_val)
 
     def test_create_job_yaml(self):
         self.component.job_name = "ack-job-name-test"
