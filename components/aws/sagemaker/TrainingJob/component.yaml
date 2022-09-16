@@ -183,7 +183,7 @@ outputs:
 
 implementation:
   container:
-    image: ashyam123/kfp20:59
+    image: abashyam123/kfp20:59
     command: [python3]
     args:
       - TrainingJob/src/TrainingJob_component.py
