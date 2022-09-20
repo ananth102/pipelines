@@ -384,18 +384,15 @@ class SageMakerComponentTestCase(unittest.TestCase):
             )
             self.assertTrue(ret_val)
 
-
     def test_create_job_yaml(self):
         self.component.job_name = "ack-job-name-test"
         with patch(
             "builtins.open",
             MagicMock(return_value=open(self.component.job_request_outline_location)),
         ) as mock_open:
-            # print(DummySpec.INPUTS)
             Args = ["--input1", "abc123", "--input2", "123", "--region", "us-west-1"]
             nSpec = DummySpec(Args)
-            # print("wpp",nSpec._inputs)
-
+            
             result = self.component._create_job_yaml(nSpec._inputs, DummySpec.OUTPUTS)
 
             sample = {

@@ -1,10 +1,13 @@
 from commonv2.sagemaker_component import SageMakerJobStatus
 from TrainingJob.src.TrainingJob_spec import SageMakerTrainingJobSpec
 from TrainingJob.src.TrainingJob_component import SageMakerTrainingJobComponent
-from tests.unit_tests.tests.TrainingJob.test_TrainingJob_spec import TrainingSpecTestCase
+from tests.unit_tests.tests.TrainingJob.test_TrainingJob_spec import (
+    TrainingSpecTestCase,
+)
 import unittest
 
 from unittest.mock import patch, MagicMock
+
 
 class TrainingComponentTestCase(unittest.TestCase):
     REQUIRED_ARGS = TrainingSpecTestCase.REQUIRED_ARGS
@@ -29,8 +32,8 @@ class TrainingComponentTestCase(unittest.TestCase):
                 "TrainingJob.src.TrainingJob_component.SageMakerComponent._get_resource_synced_status"
             ) as mock_resource_sync:
 
-                mock_resource_sync.return_value = False                
-                
+                mock_resource_sync.return_value = False
+
                 mock_get_resource.return_value = {
                     "status": {"trainingJobStatus": "Starting"}
                 }
@@ -77,7 +80,7 @@ class TrainingComponentTestCase(unittest.TestCase):
                         error_message="crash",
                     ),
                 )
-            
+
     def test_job_status_debugger(self):
         with patch(
             "TrainingJob.src.TrainingJob_component.SageMakerComponent._get_resource"
@@ -99,14 +102,14 @@ class TrainingComponentTestCase(unittest.TestCase):
                     ),
                 )
 
-                debugRulesStat = [
+                debugRulesStatus = [
                     {
                         "lastModifiedTime": "2022-08-30T22:53:17Z",
                         "ruleConfigurationName": "LossNotDecreasing",
                         "ruleEvaluationStatus": "IssuesFound",
                     }
                 ]
-                profilerRulesStat = [
+                profilerRulesStatus = [
                     {
                         "lastModifiedTime": "2022-08-30T22:53:17Z",
                         "ruleConfigurationName": "ProfilerReport",
@@ -116,8 +119,8 @@ class TrainingComponentTestCase(unittest.TestCase):
                 mock_get_resource.return_value = {
                     "status": {
                         "trainingJobStatus": "Completed",
-                        "debugRuleEvaluationStatuses": debugRulesStat,
-                        "profilerRuleEvaluationStatuses": profilerRulesStat,
+                        "debugRuleEvaluationStatuses": debugRulesStatus,
+                        "profilerRuleEvaluationStatuses": profilerRulesStatus,
                     }
                 }
                 mock_resource_sync.return_value = True
@@ -127,7 +130,7 @@ class TrainingComponentTestCase(unittest.TestCase):
                         is_completed=True, raw_status="Completed", has_error=True
                     ),
                 )
-                debugRulesStat = [
+                debugRulesStatus = [
                     {
                         "lastModifiedTime": "2022-08-30T22:53:17Z",
                         "ruleConfigurationName": "LossNotDecreasing",
@@ -137,8 +140,8 @@ class TrainingComponentTestCase(unittest.TestCase):
                 mock_get_resource.return_value = {
                     "status": {
                         "trainingJobStatus": "Completed",
-                        "debugRuleEvaluationStatuses": debugRulesStat,
-                        "profilerRuleEvaluationStatuses": profilerRulesStat,
+                        "debugRuleEvaluationStatuses": debugRulesStatus,
+                        "profilerRuleEvaluationStatuses": profilerRulesStatus,
                     }
                 }
                 self.assertEqual(

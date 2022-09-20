@@ -56,11 +56,7 @@ class DummySpec(SageMakerComponentSpec[DummyInputs, DummyOutputs]):
             required=True,
             description="The second input.",
         ),
-        region=InputValidator(
-            input_type=str,
-            required=False,
-            description="region"
-        ),
+        region=InputValidator(input_type=str, required=False, description="region"),
     )
 
     OUTPUTS = DummyOutputs(
@@ -109,7 +105,7 @@ class ExtraSpec(SageMakerComponentSpec[AllInputTypes, NoOutputs]):
             input_type=str,
             required=False,
             description="optional",
-        )
+        ),
     )
 
     OUTPUTS = NoOutputs()

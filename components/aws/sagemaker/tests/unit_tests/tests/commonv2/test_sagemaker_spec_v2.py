@@ -16,7 +16,7 @@ from tests.unit_tests.tests.commonv2.dummy_spec import (
 )
 import unittest
 
-from unittest.mock import patch, call, MagicMock, mock_open, ANY
+from unittest.mock import patch, call, MagicMock
 
 from commonv2.sagemaker_component_spec import SageMakerComponentSpec
 
