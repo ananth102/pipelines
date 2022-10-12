@@ -22,7 +22,7 @@ outputs:
 - {name: workteam_arn, description: The ARN of the workteam.}
 implementation:
   container:
-    image: abashyam123/kfp10:14
+    image: abashyam123/kfp10:15
     command: [python3]
     args:
     - workteam/src/sagemaker_workteam_component.py
