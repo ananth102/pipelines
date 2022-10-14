@@ -165,6 +165,7 @@ function install_kfp() {
 
   echo "[Installing KFP] Waiting for pods to stand up"
 
+  sleep 3m
   kubectl wait --for=condition=ready -n "${KFP_NAMESPACE}" pod -l app=ml-pipeline --timeout=5m
 
   # TODO: Replace with calculated waits
