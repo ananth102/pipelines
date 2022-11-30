@@ -110,7 +110,7 @@ class SageMakerTrainingJobComponent(SageMakerComponent):
     def _get_job_status(self):
 
         ack_statuses = super()._get_resource()["status"]
-        ack_spec = ack_statuses = super()._get_resource()["spec"]
+        ack_spec = super()._get_resource()["spec"]
         sm_job_status = ack_statuses["trainingJobStatus"]  # todo: developer customize
 
         if "debugRuleEvaluationStatuses" in ack_statuses:
