@@ -64,8 +64,10 @@ class SageMakerTrainingJobOutputs(SageMakerComponentBaseOutputs):
 
     ack_resource_metadata: Output
     conditions: Output
+    creation_time: Output
     debug_rule_evaluation_statuses: Output
     failure_reason: Output
+    last_modified_time: Output
     model_artifacts: Output
     profiler_rule_evaluation_statuses: Output
     profiling_status: Output
@@ -198,11 +200,17 @@ class SageMakerTrainingJobSpec(
         conditions=OutputValidator(
             description="All CRS managed by ACK have a common `Status.Conditions` member that contains a collection of `ackv1",
         ),
+        creation_time=OutputValidator(
+            description="A timestamp that indicates when the training job was created.",
+        ),
         debug_rule_evaluation_statuses=OutputValidator(
             description="Evaluation status of Debugger rules for debugging on a training job.",
         ),
         failure_reason=OutputValidator(
             description="If the training job failed, the reason it failed.",
+        ),
+        last_modified_time=OutputValidator(
+            description="A timestamp that indicates when the status of the training job was last modified.",
         ),
         model_artifacts=OutputValidator(
             description="Information about the Amazon S3 location that is configured for storing model artifacts.",

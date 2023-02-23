@@ -156,6 +156,11 @@ outputs:
       description: "All CRS managed by ACK have a common `Status.",
     }
   - {
+      name: creation_time,
+      type: String,
+      description: "A timestamp that indicates when the training job was created.",
+    }
+  - {
       name: debug_rule_evaluation_statuses,
       type: JsonArray,
       description: "Evaluation status of Debugger rules for debugging on a training job.",
@@ -164,6 +169,11 @@ outputs:
       name: failure_reason,
       type: String,
       description: "If the training job failed, the reason it failed.",
+    }
+  - {
+      name: last_modified_time,
+      type: String,
+      description: "A timestamp that indicates when the status of the training job was last modified.",
     }
   - {
       name: model_artifacts,
@@ -199,7 +209,7 @@ outputs:
 
 implementation:
   container:
-    image: public.ecr.aws/kubeflow-on-aws/aws-sagemaker-kfp-components:2.1.0
+    image: 518953804033.dkr.ecr.us-west-2.amazonaws.com/kfp20:15
     command: [python3]
     args:
       - TrainingJob/src/TrainingJob_component.py
