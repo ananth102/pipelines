@@ -58,7 +58,9 @@ def test_create_v2_endpoint(kfp_client, experiment_id, boto3_session, test_file_
             test_params["Timeout"],
         )
 
-        endpoint_describe = ack_utils._get_resource(k8s_client, input_endpoint_name, "endpoints")
+        endpoint_describe = ack_utils._get_resource(
+            k8s_client, input_endpoint_name, "endpoints"
+        )
 
         endpoint_describe["status"]["endpointStatus"] == "InService"
 
@@ -79,5 +81,7 @@ def test_create_v2_endpoint(kfp_client, experiment_id, boto3_session, test_file_
         utils.remove_dir(download_dir)
     finally:
         ack_utils._delete_resource(k8s_client, input_endpoint_name, "endpoints")
-        ack_utils._delete_resource(k8s_client, input_endpoint_config_name,"endpointconfigs" )
-        ack_utils._delete_resource(k8s_client, input_model_name ,"models")
+        ack_utils._delete_resource(
+            k8s_client, input_endpoint_config_name, "endpointconfigs"
+        )
+        ack_utils._delete_resource(k8s_client, input_model_name, "models")

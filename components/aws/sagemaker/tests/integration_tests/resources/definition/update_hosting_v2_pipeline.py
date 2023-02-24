@@ -1,12 +1,8 @@
-#!/usr/bin/env python3
-
 import kfp
 from kfp import components
 from kfp import dsl
 
-sagemaker_Model_op = components.load_component_from_file(
-    "../../Model/component.yaml"
-)
+sagemaker_Model_op = components.load_component_from_file("../../Model/component.yaml")
 
 sagemaker_EndpointConfig_op = components.load_component_from_file(
     "../../EndpointConfig/component.yaml"
@@ -16,22 +12,18 @@ sagemaker_Endpoint_op = components.load_component_from_file(
     "../../Endpoint/component.yaml"
 )
 
+
 @dsl.pipeline(name="Update Hosting", description="SageMaker Hosting")
 def UpdateHosting(
     region="",
     execution_role_arn="",
     model_name="",
     primary_container="",
-    
     endpoint_config_name="",
     production_variants="",
-
     endpoint_name="",
-
     second_endpoint_config_name="",
     second_production_variants="",
-
-
 ):
     Model = sagemaker_Model_op(
         region=region,
@@ -64,6 +56,4 @@ def UpdateHosting(
     ).after(Endpoint)
 
 
-
 kfp.compiler.Compiler().compile(UpdateHosting, __file__ + ".tar.gz")
-    
