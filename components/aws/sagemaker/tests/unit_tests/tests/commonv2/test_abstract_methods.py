@@ -125,6 +125,29 @@ class SageMakerAbstractComponentTestCase(unittest.TestCase):
             print("\n\n", result, "\n\n", sample, "\n\n")
 
             self.assertDictEqual(result, sample)
+    
+    @patch.object(SageMakerComponent, "_get_k8s_api_client", MagicMock())
+    @patch("kubernetes.client.CustomObjectsApi")
+    def test_patch_resource(self, mock_custom_objects_api):
+
+        self.component.group = "group-test"
+        self.component.version = "version-test"
+        self.component.plural = "plural-test"
+        self.component.job_name = "ack-job-name-test"
+        cr_dict = {}
+
+        self.component._patch_custom_resource(cr_dict)
+        mock_custom_objects_api().patch_cluster_custom_object.assert_called_once_with(
+            "group-test", "version-test", "plural-test","ack-job-name-test" , {}
+        )
+
+        self.component.namespace = "namespace-test"
+
+        self.component._patch_custom_resource(cr_dict)
+        mock_custom_objects_api().patch_namespaced_custom_object.assert_called_once_with(
+            "group-test", "version-test", "namespace-test", "plural-test","ack-job-name-test" , {}
+        )
+
 
 
 if __name__ == "__main__":

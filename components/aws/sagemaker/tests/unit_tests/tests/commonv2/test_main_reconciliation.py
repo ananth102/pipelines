@@ -56,6 +56,8 @@ class SageMakerComponentReconcilationTestCase(unittest.TestCase):
         self.component._do = MagicMock(return_value=False)
         self.component._init_configure_k8s = MagicMock()
 
+        self.component._is_upgrade = MagicMock(return_value=False)
+
         with patch("commonv2.sagemaker_component.sys") as mock_sys:
             self.component.Do(COMMON_INPUTS, DummySpec.OUTPUTS, DummySpec.OUTPUTS)
 
@@ -69,6 +71,7 @@ class SageMakerComponentReconcilationTestCase(unittest.TestCase):
         )
 
         self.component._after_submit_job_request = MagicMock()
+        self.component._is_upgrade = MagicMock(return_value=False)
 
         response = self.component._do(
             COMMON_INPUTS, DummySpec.OUTPUTS, DummySpec.OUTPUTS
@@ -90,6 +93,7 @@ class SageMakerComponentReconcilationTestCase(unittest.TestCase):
 
         self.component._after_job_complete = MagicMock()
         self.component._write_all_outputs = MagicMock()
+        self.component._is_upgrade = MagicMock(return_value=False)
 
         self.component._check_resource_conditions = MagicMock(return_value=None)
         self.component._get_resource = MagicMock(
@@ -116,6 +120,7 @@ class SageMakerComponentReconcilationTestCase(unittest.TestCase):
         ]
 
         self.component._after_job_complete = MagicMock()
+        self.component._is_upgrade = MagicMock(return_value=False)
 
         response = self.component._do(
             COMMON_INPUTS, DummySpec.OUTPUTS, DummySpec.OUTPUTS
@@ -142,6 +147,7 @@ class SageMakerComponentReconcilationTestCase(unittest.TestCase):
 
         self.component._after_job_complete = MagicMock()
         self.component._write_all_outputs = MagicMock()
+        self.component._is_upgrade = MagicMock(return_value=False)
 
         self.component._check_resource_conditions = MagicMock(return_value=None)
         self.component._get_resource = MagicMock(
