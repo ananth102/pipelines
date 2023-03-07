@@ -56,3 +56,31 @@ def wait_for_trainingjob_status(
             return True
         sleep(period_length)
     return False
+
+
+def wait_for_condition(k8s_client, resource_name, validator_function, wait_periods=10, period_length=8):
+    for _ in range(wait_periods):
+        if not validator_function(k8s_client, resource_name):
+            sleep(period_length)
+        else:
+            return True
+    return False
+
+def does_endpoint_exist(
+    k8s_client, endpoint_name
+):
+    try:
+        response = _get_resource(k8s_client, endpoint_name, "endpoints")
+        if response:
+            return True
+    except:
+        return False
+def is_endpoint_deleted(
+    k8s_client, endpoint_name
+):
+    try:
+        response = _get_resource(k8s_client, endpoint_name, "endpoints")
+        if response:
+            return False
+    except:
+        return True

@@ -85,3 +85,44 @@ def test_create_v2_endpoint(kfp_client, experiment_id, boto3_session, test_file_
             k8s_client, input_endpoint_config_name, "endpointconfigs"
         )
         ack_utils._delete_resource(k8s_client, input_model_name, "models")
+    
+    def test_terminate_v2_endpoint(kfp_client, experiment_id):
+        test_file_dir = "resources/config/ack-hosting"
+
+        test_params = utils.load_params(
+        utils.replace_placeholders(
+            os.path.join(test_file_dir, "config.yaml"),
+            os.path.join(download_dir, "woof.yaml"),
+        )
+    )
+
+        k8s_client = ack_utils.k8s_client()
+        input_model_name = utils.generate_random_string(10) + "-v2-model"
+        input_endpoint_config_name = (
+            utils.generate_random_string(10) + "-v2-endpoint-config"
+        )
+        input_endpoint_name = utils.generate_random_string(10) + "-v2-endpoint"
+        test_params["Arguments"]["model_name"] = input_model_name
+        test_params["Arguments"]["endpoint_config_name"] = input_endpoint_config_name
+        test_params["Arguments"]["endpoint_name"] = input_endpoint_name
+
+        try:
+            run_id , _, _ = kfp_client_utils.compile_run_monitor_pipeline(
+                kfp_client,
+                experiment_id,
+                test_params["PipelineDefinition"],
+                test_params["Arguments"],
+                download_dir,
+                test_params["TestName"],
+                60,
+                "running",
+            )
+            assert ack_utils.wait_for_condition(k8s_client,input_endpoint_name, ack_utils.does_endpoint_exist, wait_periods=8, period_length=10)
+            kfp_client_utils.terminate_run(kfp_client, run_id)
+            assert ack_utils.wait_for_condition(k8s_client,input_endpoint_name, ack_utils.is_endpoint_deleted , wait_periods=10, period_length=10)
+        finally:
+            ack_utils._delete_resource(
+                k8s_client, input_endpoint_config_name, "endpointconfigs"
+            )
+            ack_utils._delete_resource(k8s_client, input_model_name, "models")
+
