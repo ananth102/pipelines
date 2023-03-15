@@ -170,6 +170,39 @@ class EndpointComponentTestCase(unittest.TestCase):
             self.component.Do(named_spec)
             self.assertEqual("test1", self.component.job_name)
 
+    def test_after_job_completed(self):
+
+        spec = SageMakerEndpointSpec(self.REQUIRED_ARGS)
+
+        statuses = {
+            "status": {
+                "ackResourceMetadata": 1,
+                "conditions": 2,
+                "creationTime": 3,
+                "endpointStatus": 4,
+                "failureReason": 5,
+                "lastModifiedTime": 6,
+                "pendingDeploymentSummary": 7,
+                "productionVariants": 8,
+            }
+        }
+
+        with patch(
+            "Endpoint.src.Endpoint_component.SageMakerComponent._get_resource",
+            MagicMock(return_value=statuses),
+        ):
+
+            self.component._after_job_complete({}, {}, spec.inputs, spec.outputs)
+
+            self.assertEqual(spec.outputs.ack_resource_metadata, "1")
+            self.assertEqual(spec.outputs.conditions, "2")
+            self.assertEqual(spec.outputs.creation_time, "3")
+            self.assertEqual(spec.outputs.endpoint_status, "4")
+            self.assertEqual(spec.outputs.failure_reason, "5")
+            self.assertEqual(spec.outputs.last_modified_time, "6")
+            self.assertEqual(spec.outputs.pending_deployment_summary, "7")
+            self.assertEqual(spec.outputs.production_variants, "8")
+
 
 if __name__ == "__main__":
     unittest.main()

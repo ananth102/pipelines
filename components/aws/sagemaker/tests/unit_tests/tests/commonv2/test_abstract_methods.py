@@ -13,8 +13,7 @@ from tests.unit_tests.tests.commonv2.dummy_spec import (
 class SageMakerAbstractComponentTestCase(unittest.TestCase):
     @classmethod
     def setUp(cls):
-        """Bootstrap Unit test resources for testing runtime.
-        """
+        """Bootstrap Unit test resources for testing runtime."""
         cls.component = SageMakerComponent()
         # Turn off polling interval for instant tests
         cls.component.STATUS_POLL_INTERVAL = 0
@@ -27,12 +26,11 @@ class SageMakerAbstractComponentTestCase(unittest.TestCase):
             test_files_dir, "test_job_request_outline.yaml.tpl"
         )
         cls.component.job_request_outline_location = test_job_request_outline_location
-    
+
     @patch.object(SageMakerComponent, "_get_k8s_api_client", MagicMock())
     @patch("kubernetes.client.CustomObjectsApi")
     def test_create_custom_resource(self, mock_custom_objects_api):
-        """ Testing creating a custom resource.
-        """
+        """Testing creating a custom resource."""
 
         cr_dict = {}
         self.component.group = "group-test"
@@ -53,8 +51,7 @@ class SageMakerAbstractComponentTestCase(unittest.TestCase):
     @patch.object(SageMakerComponent, "_get_k8s_api_client", MagicMock())
     @patch("kubernetes.client.CustomObjectsApi")
     def test_get_resource(self, mock_custom_objects_api):
-        """ Testing get resource.
-        """
+        """Testing get resource."""
         self.component.group = "group-test"
         self.component.version = "version-test"
         self.component.plural = "plural-test"
@@ -78,8 +75,7 @@ class SageMakerAbstractComponentTestCase(unittest.TestCase):
     @patch.object(SageMakerComponent, "_get_k8s_api_client", MagicMock())
     @patch("kubernetes.client.CustomObjectsApi")
     def test_delete_custom_resource(self, mock_custom_objects_api):
-        """ Testing deletion
-        """
+        """Testing deletion"""
         self.component.group = "group-test"
         self.component.version = "version-test"
         self.component.plural = "plural-test"
@@ -95,8 +91,7 @@ class SageMakerAbstractComponentTestCase(unittest.TestCase):
             self.assertTrue(ret_val)
 
     def test_create_job_yaml(self):
-        """Verify that the create yaml function works as intended.
-        """
+        """Verify that the create yaml function works as intended."""
         self.component.job_name = "ack-job-name-test"
         with patch(
             "builtins.open",
@@ -125,7 +120,7 @@ class SageMakerAbstractComponentTestCase(unittest.TestCase):
             print("\n\n", result, "\n\n", sample, "\n\n")
 
             self.assertDictEqual(result, sample)
-    
+
     @patch.object(SageMakerComponent, "_get_k8s_api_client", MagicMock())
     @patch("kubernetes.client.CustomObjectsApi")
     def test_patch_resource(self, mock_custom_objects_api):
@@ -138,16 +133,20 @@ class SageMakerAbstractComponentTestCase(unittest.TestCase):
 
         self.component._patch_custom_resource(cr_dict)
         mock_custom_objects_api().patch_cluster_custom_object.assert_called_once_with(
-            "group-test", "version-test", "plural-test","ack-job-name-test" , {}
+            "group-test", "version-test", "plural-test", "ack-job-name-test", {}
         )
 
         self.component.namespace = "namespace-test"
 
         self.component._patch_custom_resource(cr_dict)
         mock_custom_objects_api().patch_namespaced_custom_object.assert_called_once_with(
-            "group-test", "version-test", "namespace-test", "plural-test","ack-job-name-test" , {}
+            "group-test",
+            "version-test",
+            "namespace-test",
+            "plural-test",
+            "ack-job-name-test",
+            {},
         )
-
 
 
 if __name__ == "__main__":

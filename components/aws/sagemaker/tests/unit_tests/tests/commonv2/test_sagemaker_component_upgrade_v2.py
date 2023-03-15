@@ -72,5 +72,3 @@ class SageMakerComponentUpgradeTest(unittest.TestCase):
             }
         )
         assert self.component._get_condition_times() == ["1:30", "1:31", "1:32"]
-    
-
