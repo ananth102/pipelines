@@ -183,6 +183,8 @@ class SageMakerEndpointComponent(SageMakerComponent):
             if "productionVariants" in ack_statuses
             else None
         )
+        outputs.sagemaker_resource_name = self.job_name
+
         ############GENERATED SECTION ABOVE############
 
 

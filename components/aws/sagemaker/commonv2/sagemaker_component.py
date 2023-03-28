@@ -227,7 +227,10 @@ class SageMakerComponent:
                 status = self._get_job_status() if not self.resource_upgrade else self._get_upgrade_status()
                 # Continue until complete
                 if status and status.is_completed:
-                    logging.info(f"Job ended, final status: {status.raw_status}")
+                    if self.resource_upgrade:
+                        logging.info(f"Resource Upgrade complete, final status: {status.raw_status}")
+                    else:
+                        logging.info(f"Job ended, final status: {status.raw_status}")
                     break
 
                 sleep(self.STATUS_POLL_INTERVAL)
@@ -258,6 +261,7 @@ class SageMakerComponent:
         Returns:
             bool: Whether the resource was found on Sagemaker
         """
+        message_sent = False
         try:
             while True:
                 ack_condition = self._check_resource_conditions()
@@ -265,6 +269,9 @@ class SageMakerComponent:
                     sleep(self.STATUS_POLL_INTERVAL)
                     continue
                 elif ack_condition == False:
+                    if self.resource_upgrade and not self.is_update_processed():
+                        sleep(self.UPDATE_PROCESS_INTERVAL)
+                        continue
                     return False
 
                 arn = None
@@ -272,15 +279,15 @@ class SageMakerComponent:
                 ack_resource_meta = ack_status.get("ackResourceMetadata", None)
                 if ack_resource_meta:
                     arn = ack_resource_meta.get("arn", None)
-                    if arn is not None:
+                    if arn is not None and not message_sent:
                         resource_ack = f"Created Sagemaker job with ARN: {arn}" if not self.resource_upgrade else \
                             f"Submitting update for Sagemaker resource with ARN: {arn}"
                         logging.info(resource_ack)
+                        message_sent = True
                 # Continue until complete
                 if arn:
                     if self.resource_upgrade:
-                        current_condition_times = self._get_condition_times()
-                        if current_condition_times == self.initial_resouce_condition_times:
+                        if not self.is_update_processed():
                             sleep(self.UPDATE_PROCESS_INTERVAL)
                             continue
                     break
@@ -313,6 +320,12 @@ class SageMakerComponent:
             SageMakerJobStatus: A status object.
         """
         pass
+
+    def is_update_processed(self):
+        current_condition_times = self._get_condition_times()
+        if current_condition_times == self.initial_resouce_condition_times:
+            return False
+        return True
 
     def _get_resource(self):
         """Get the custom resource detail similar to: kubectl describe

@@ -205,11 +205,16 @@ outputs:
       type: JsonObject,
       description: "The status of the warm pool associated with the training job.",
     }
+  - {
+      name: sagemaker_resource_name,
+      type: String,
+      description: "Resource name on Sagemaker",
+    }
   ###########################GENERATED SECTION ABOVE############################
 
 implementation:
   container:
-    image: 518953804033.dkr.ecr.us-west-2.amazonaws.com/kfp20:15
+    image: 518953804033.dkr.ecr.us-west-2.amazonaws.com/kfp20:19
     command: [python3]
     args:
       - TrainingJob/src/TrainingJob_component.py

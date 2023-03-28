@@ -259,6 +259,8 @@ class SageMakerTrainingJobComponent(SageMakerComponent):
         outputs.warm_pool_status = str(
             ack_statuses["warmPoolStatus"] if "warmPoolStatus" in ack_statuses else None
         )
+        outputs.sagemaker_resource_name = self.job_name
+
         ############GENERATED SECTION ABOVE############
 
 

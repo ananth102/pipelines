@@ -52,6 +52,7 @@ class SageMakerEndpointOutputs(SageMakerComponentBaseOutputs):
     last_modified_time: Output
     pending_deployment_summary: Output
     production_variants: Output
+    sagemaker_resource_name: Output
 
 
 class SageMakerEndpointSpec(
@@ -105,6 +106,9 @@ class SageMakerEndpointSpec(
         ),
         production_variants=OutputValidator(
             description="An array of ProductionVariantSummary objects, one for each model hosted behind this endpoint.",
+        ),
+        sagemaker_resource_name=OutputValidator(
+            description="Resource name on Sagemaker",
         ),
     )
 

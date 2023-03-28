@@ -71,11 +71,16 @@ outputs:
       type: JsonArray,
       description: "All CRS managed by ACK have a common `Status.",
     }
+  - {
+      name: sagemaker_resource_name,
+      type: String,
+      description: "Resource name on Sagemaker",
+    }
   ###########################GENERATED SECTION ABOVE############################
 
 implementation:
   container:
-    image: 518953804033.dkr.ecr.us-west-2.amazonaws.com/kfp20:15
+    image: 518953804033.dkr.ecr.us-west-2.amazonaws.com/kfp20:19
     command: [python3]
     args:
       - Model/src/Model_component.py
