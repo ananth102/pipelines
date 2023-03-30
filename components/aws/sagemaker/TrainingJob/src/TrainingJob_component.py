@@ -54,6 +54,7 @@ class SageMakerTrainingJobComponent(SageMakerComponent):
         self.group = "sagemaker.services.k8s.aws"
         self.version = "v1alpha1"
         self.plural = "trainingjobs"
+        self.spaced_out_resource_name = "Training Job"
 
         self.job_request_outline_location = (
             "TrainingJob/src/TrainingJob_request.yaml.tpl"
@@ -85,7 +86,7 @@ class SageMakerTrainingJobComponent(SageMakerComponent):
     def _submit_job_request(self, request: Dict) -> object:
 
         if self.resource_upgrade:
-            self.initial_resouce_condition_times = self._get_condition_times()
+            self.initial_resource_sync_time = self._get_resource_synced_condition_time()
             return super()._patch_custom_resource(request)
         else:
             return super()._create_resource(request, 6, 10)
@@ -190,8 +191,7 @@ class SageMakerTrainingJobComponent(SageMakerComponent):
         recoverable_conditions = self._get_conditions_of_type("ACK.Recoverable")
         if len(recoverable_conditions) == 0:
             return job_status
-        else:
-            sm_job_status = job_status.raw_status
+        sm_job_status = job_status.raw_status
         return SageMakerJobStatus(
             is_completed=False, has_error=False, raw_status=sm_job_status
         )
@@ -259,8 +259,6 @@ class SageMakerTrainingJobComponent(SageMakerComponent):
         outputs.warm_pool_status = str(
             ack_statuses["warmPoolStatus"] if "warmPoolStatus" in ack_statuses else None
         )
-        outputs.sagemaker_resource_name = self.job_name
-
         ############GENERATED SECTION ABOVE############
 
 

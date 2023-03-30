@@ -109,9 +109,10 @@ class SageMakerComponent:
     group: str
     version: str
     plural: str
+    spaced_out_resource_name: str
     namespace: Optional[str] = None
     resource_upgrade: bool = False
-    initial_resouce_condition_times = []
+    initial_resource_sync_time: str
 
     job_request_outline_location: str
     job_request_location: str
@@ -168,7 +169,6 @@ class SageMakerComponent:
         config.load_incluster_config()
         return ApiClient()
 
-
     def _get_current_namespace(self):
         """
         Get the current namespace.
@@ -206,9 +206,9 @@ class SageMakerComponent:
             )
             return False
 
-        created = self._verify_resource_creation()
+        created = self._verify_resource_consumption()
         if not created:
-                return False
+            return False
 
         self._after_submit_job_request(job, request, inputs, outputs)
 
@@ -221,22 +221,36 @@ class SageMakerComponent:
                 if ack_condition:
                     sleep(self.STATUS_POLL_INTERVAL)
                     continue
-                elif ack_condition == False:  # ACK.Terminal or special errors (Validation Exception/Invalid Input)
+                elif (
+                    ack_condition == False
+                ):  # ACK.Terminal or special errors (Validation Exception/Invalid Input)
                     return False
-                
-                status = self._get_job_status() if not self.resource_upgrade else self._get_upgrade_status()
+
+                status = (
+                    self._get_job_status()
+                    if not self.resource_upgrade
+                    else self._get_upgrade_status()
+                )
                 # Continue until complete
                 if status and status.is_completed:
                     if self.resource_upgrade:
-                        logging.info(f"Resource Upgrade complete, final status: {status.raw_status}")
+                        logging.info(
+                            f"{self.spaced_out_resource_name} Upgrade complete, final status: {status.raw_status}"
+                        )
                     else:
-                        logging.info(f"Job ended, final status: {status.raw_status}")
+                        logging.info(
+                            f"{self.spaced_out_resource_name} Creation complete, final status: {status.raw_status}"
+                        )
                     break
 
                 sleep(self.STATUS_POLL_INTERVAL)
-                logging.info(f"Job is in status: {status.raw_status}")
+                logging.info(
+                    f"{self.spaced_out_resource_name} is in status: {status.raw_status}"
+                )
         except Exception as e:
-            logging.exception("An error occurred while polling for job status")
+            logging.exception(
+                f"An error occurred while polling for {self.spaced_out_resource_name} status"
+            )
             return False
 
         if status.has_error:
@@ -250,18 +264,22 @@ class SageMakerComponent:
 
     def _get_conditions_of_type(self, condition_type):
         resource_conditions = self._get_resource()["status"]["conditions"]
-        filtered_conditions = filter(lambda condition: (condition["type"] == condition_type), resource_conditions)
+        filtered_conditions = filter(
+            lambda condition: (condition["type"] == condition_type), resource_conditions
+        )
         return list(filtered_conditions)
-        
-    
-    def _verify_resource_creation(self) -> bool:
-        """ Verify that the resource has been successfully created. 
+
+    def _verify_resource_consumption(self) -> bool:
+        """Verify that the resource has been successfully consumed by the controller.
             In the case of an update verify that the job arn exists.
 
         Returns:
-            bool: Whether the resource was found on Sagemaker
+            bool: Whether the resource consumed by the controller.
         """
-        message_sent = False
+        submission_ack_printed = False
+        ERROR_NOT_CREATED_MESSAGE = "An error occurred while getting resource arn, ACK CR created but Sagemaker resource not created."
+        ERROR_UPDATE_MESSAGE = "An error occured when getting the resource arn. Check the ACK Sagemaker Controller logs."
+
         try:
             while True:
                 ack_condition = self._check_resource_conditions()
@@ -269,39 +287,68 @@ class SageMakerComponent:
                     sleep(self.STATUS_POLL_INTERVAL)
                     continue
                 elif ack_condition == False:
-                    if self.resource_upgrade and not self.is_update_processed():
+                    if (
+                        self.resource_upgrade
+                        and not self.is_update_consumed_by_controller()
+                    ):
                         sleep(self.UPDATE_PROCESS_INTERVAL)
                         continue
                     return False
 
-                arn = None
-                ack_status = self._get_resource()["status"]
-                ack_resource_meta = ack_status.get("ackResourceMetadata", None)
-                if ack_resource_meta:
-                    arn = ack_resource_meta.get("arn", None)
-                    if arn is not None and not message_sent:
-                        resource_ack = f"Created Sagemaker job with ARN: {arn}" if not self.resource_upgrade else \
-                            f"Submitting update for Sagemaker resource with ARN: {arn}"
-                        logging.info(resource_ack)
-                        message_sent = True
+                # Retrieve Sagemaker ARN
+                arn = self.check_resource_initiation(submission_ack_printed)
+
                 # Continue until complete
                 if arn:
-                    if self.resource_upgrade:
-                        if not self.is_update_processed():
-                            sleep(self.UPDATE_PROCESS_INTERVAL)
-                            continue
+                    submission_ack_printed = True
+                    if (
+                        self.resource_upgrade
+                        and not self.is_update_consumed_by_controller()
+                    ):
+                        sleep(self.UPDATE_PROCESS_INTERVAL)
+                        continue
                     break
 
                 sleep(self.STATUS_POLL_INTERVAL)
                 logging.info(f"Getting arn for {self.job_name}")
         except Exception as e:
-            not_created_msg = "An error occurred while getting job arn, ACK CR created but Sagemaker job not created."
-            error_update = "An error occured when getting the job arn. Check the ACK Sagemaker Controller logs."
-            err_msg = error_update if self.resource_upgrade else not_created_msg
+            err_msg = (
+                ERROR_UPDATE_MESSAGE
+                if self.resource_upgrade
+                else ERROR_NOT_CREATED_MESSAGE
+            )
             logging.exception(err_msg)
             return False
         return True
 
+    def check_resource_initiation(self, submission_ack_printed: bool):
+        """ Check if resource has been initiated in Sagemaker. 
+            A resource is considered to be initiated if the resource ARN is present in the ack resource metadata.
+            If the resource ARN is present in the ack resource metadata, the resource has been successfully
+            created in Sagemaker.
+
+        Args:
+            submission_ack_printed (bool): Parameter to avoid printing the resource consumed message
+                multiple times.
+
+        Returns:
+            str: The ARN of the resource. If the resource ARN is not present in the ack resource metadata,
+                the resource has not been created in Sagemaker.
+        """
+        ack_status = self._get_resource()["status"]
+        ack_resource_meta = ack_status.get("ackResourceMetadata", None)
+        if ack_resource_meta:
+            arn = ack_resource_meta.get("arn", None)
+            if arn is not None:
+                if submission_ack_printed:
+                    resource_consumed_message = (
+                        f"Created Sagemaker {self.spaced_out_resource_name} with ARN: {arn}"
+                        if not self.resource_upgrade
+                        else f"Submitting update for Sagemaker {self.spaced_out_resource_name} with ARN: {arn}"
+                    )
+                    logging.info(resource_consumed_message)
+                return arn
+        return None
 
     @abstractmethod
     def _get_job_status(self) -> SageMakerJobStatus:
@@ -321,9 +368,12 @@ class SageMakerComponent:
         """
         pass
 
-    def is_update_processed(self):
-        current_condition_times = self._get_condition_times()
-        if current_condition_times == self.initial_resouce_condition_times:
+    def is_update_consumed_by_controller(self):
+        """Check if update has been consumed by the controller, in this case it is done by
+        checking whether
+        """
+        current_resource_sync_time = self._get_resource_synced_condition_time()
+        if current_resource_sync_time == self.initial_resource_sync_time:
             return False
         return True
 
@@ -414,7 +464,6 @@ class SageMakerComponent:
 
             logging.info(f"Custom resource: {json.dumps(job_request_dict, indent=2)}")
 
-
         return job_request_dict
 
     @abstractmethod
@@ -474,7 +523,6 @@ class SageMakerComponent:
 
         _api_client = self._get_k8s_api_client()
         _api = client.CustomObjectsApi(_api_client)
-
 
         if self.namespace is None:
             return _api.create_cluster_custom_object(
@@ -586,7 +634,7 @@ class SageMakerComponent:
                 )
                 return False
             if condition_type == "ACK.Recoverable" and condition_status == "True":
-                # ACK requeue errors are not real errors. 
+                # ACK requeue errors are not real errors.
                 if is_ack_requeue_error(condition_message):
                     continue
                 logging.error(json.dumps(condition, indent=2))
@@ -609,6 +657,8 @@ class SageMakerComponent:
         return None
 
     def _get_resource_synced_status(self, ack_statuses: Dict):
+        """ Retrieve the resource sync status
+        """
         conditions = ack_statuses.get("conditions", None)  # Conditions has to be there
         if conditions == None:
             return None
@@ -619,6 +669,27 @@ class SageMakerComponent:
                 else:
                     return False
         return False
+    
+    def _get_resource_synced_condition_time(self) -> str:
+        """ Returns the last transition time of ResourceSynced condition.
+        If ResourceSynced condition is not present, returns an empty string.
+        Args:
+            ack_statuses: The status of the custom resource.
+        Returns:
+            str: The last transition time of ResourceSynced condition.
+        
+        """
+        ack_resource = self._get_resource()
+        ack_statuses = ack_resource.get("status", None)  # Status has to be there
+        if ack_statuses == None:
+            return ""
+        conditions = ack_statuses.get("conditions", None)  # Conditions has to be there
+        if conditions == None:
+            return ""
+        for condition in conditions:
+            if condition["type"] == "ACK.ResourceSynced":
+                return condition.get("lastTransitionTime", "")
+        return ""
 
     @abstractmethod
     def _after_submit_job_request(
@@ -675,6 +746,10 @@ class SageMakerComponent:
         _api_client = self._get_k8s_api_client()
         _api = client.CustomObjectsApi(_api_client)
 
+        if self.resource_upgrade:
+            logging.info("Stopping component, resource upgrade will still proceed.")
+            return _response, True
+
         logging.info("Deleting resource %s", (self.job_name))
         _response = None
         if self.namespace is None:
@@ -692,9 +767,8 @@ class SageMakerComponent:
                 self.plural.lower(),
                 self.job_name.lower(),
             )
-        
-        return _response, True
 
+        return _response, True
 
     @staticmethod
     def _generate_unique_timestamped_id(
@@ -772,16 +846,18 @@ class SageMakerComponent:
 
         Path(output_path).parent.mkdir(parents=True, exist_ok=True)
         Path(output_path).write_text(write_value)
-    
+
     def _is_upgrade(self):
-        """Determine whether user wants to upgrade the resource.
+        """If the resource already exists the component assumes that the user wants to upgrade
         Returns:
             Bool: If the resource is being upgraded or not.
         Raises:
             Exception
         """
         try:
-            _ = self._get_resource()
+            resource = self._get_resource()
+            if resource is None:
+                return False
             logging.info("Existing resource detected. Starting Update.")
         except client.exceptions.ApiException as error:
             if error.status == 404:
@@ -790,17 +866,4 @@ class SageMakerComponent:
             else:
                 raise error
         return True
-    
-    def _get_condition_times(self):
-        """
-        Each ACK condition has a field called lastTransitionTime. This function returns a list lastTransitionTime for all conditions.
-        
-        Returns:
-            List[str]: lastTransitionTime field in conditions list.
-        """
-        resource_conditions = self._get_resource()["status"]["conditions"]
-        condition_times = [condition.get("lastTransitionTime", None) for condition in resource_conditions]
-        # Filter out None values.
-        return list(filter(lambda cond_time:(cond_time is not None), condition_times))
-    
 

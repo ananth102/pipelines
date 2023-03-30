@@ -74,7 +74,6 @@ class SageMakerTrainingJobOutputs(SageMakerComponentBaseOutputs):
     secondary_status: Output
     training_job_status: Output
     warm_pool_status: Output
-    sagemaker_resource_name: Output
 
 
 class SageMakerTrainingJobSpec(
@@ -230,9 +229,6 @@ class SageMakerTrainingJobSpec(
         ),
         warm_pool_status=OutputValidator(
             description="The status of the warm pool associated with the training job.",
-        ),
-        sagemaker_resource_name=OutputValidator(
-            description="Resource name on Sagemaker",
         ),
     )
 
