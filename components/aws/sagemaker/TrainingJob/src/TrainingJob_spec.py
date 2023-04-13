@@ -92,12 +92,12 @@ class SageMakerTrainingJobSpec(
         ),
         debug_hook_config=InputValidator(
             input_type=SpecInputParsers.yaml_or_json_dict,
-            description="Configuration information for the Debugger hook parameters, metric and tensor collections, and stora",
+            description="Configuration information for the Amazon SageMaker Debugger hook parameters, metric and tensor colle",
             required=False,
         ),
         debug_rule_configurations=InputValidator(
             input_type=SpecInputParsers.yaml_or_json_list,
-            description="Configuration information for Debugger rules for debugging output tensors.",
+            description="Configuration information for Amazon SageMaker Debugger rules for debugging output tensors.",
             required=False,
         ),
         enable_inter_container_traffic_encryption=InputValidator(
@@ -142,12 +142,12 @@ class SageMakerTrainingJobSpec(
         ),
         profiler_config=InputValidator(
             input_type=SpecInputParsers.yaml_or_json_dict,
-            description="Configuration information for Debugger system monitoring, framework profiling, and storage paths.",
+            description="Configuration information for Amazon SageMaker Debugger system monitoring, framework profiling, and",
             required=False,
         ),
         profiler_rule_configurations=InputValidator(
             input_type=SpecInputParsers.yaml_or_json_list,
-            description="Configuration information for Debugger rules for profiling system and framework metrics.",
+            description="Configuration information for Amazon SageMaker Debugger rules for profiling system and framework met",
             required=False,
         ),
         resource_config=InputValidator(
@@ -177,7 +177,7 @@ class SageMakerTrainingJobSpec(
         ),
         tensor_board_output_config=InputValidator(
             input_type=SpecInputParsers.yaml_or_json_dict,
-            description="Configuration of storage locations for the Debugger TensorBoard output data.",
+            description="Configuration of storage locations for the Amazon SageMaker Debugger TensorBoard output data.",
             required=False,
         ),
         training_job_name=InputValidator(
@@ -204,7 +204,7 @@ class SageMakerTrainingJobSpec(
             description="A timestamp that indicates when the training job was created.",
         ),
         debug_rule_evaluation_statuses=OutputValidator(
-            description="Evaluation status of Debugger rules for debugging on a training job.",
+            description="Evaluation status of Amazon SageMaker Debugger rules for debugging on a training job.",
         ),
         failure_reason=OutputValidator(
             description="If the training job failed, the reason it failed.",
@@ -216,7 +216,7 @@ class SageMakerTrainingJobSpec(
             description="Information about the Amazon S3 location that is configured for storing model artifacts.",
         ),
         profiler_rule_evaluation_statuses=OutputValidator(
-            description="Evaluation status of Debugger rules for profiling on a training job.",
+            description="Evaluation status of Amazon SageMaker Debugger rules for profiling on a training job.",
         ),
         profiling_status=OutputValidator(
             description="Profiling status of a training job.",

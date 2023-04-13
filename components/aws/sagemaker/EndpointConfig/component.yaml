@@ -36,7 +36,7 @@ inputs:
       name: production_variants,
       type: JsonArray,
       default: '[]',
-      description: "An list of ProductionVariant objects, one for each model that you want to host at this endpoint.",
+      description: "An array of ProductionVariant objects, one for each model that you want to host at this endpoint.",
     }
   - {
       name: tags,
@@ -68,7 +68,7 @@ outputs:
 
 implementation:
   container:
-    image: 518953804033.dkr.ecr.us-west-2.amazonaws.com/kfp20:20
+    image: 518953804033.dkr.ecr.us-west-2.amazonaws.com/kfp20:22
     command: [python3]
     args:
       - EndpointConfig/src/EndpointConfig_component.py

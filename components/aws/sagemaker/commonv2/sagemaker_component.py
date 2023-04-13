@@ -109,10 +109,10 @@ class SageMakerComponent:
     group: str
     version: str
     plural: str
-    spaced_out_resource_name: str
+    spaced_out_resource_name: str # Used for Logs
     namespace: Optional[str] = None
     resource_upgrade: bool = False
-    initial_resource_sync_time: str
+    initial_status: dict
 
     job_request_outline_location: str
     job_request_location: str
@@ -372,8 +372,10 @@ class SageMakerComponent:
         """Check if update has been consumed by the controller, in this case it is done by
         checking whether
         """
-        current_resource_sync_time = self._get_resource_synced_condition_time()
-        if current_resource_sync_time == self.initial_resource_sync_time:
+        current_resource = self._get_resource()
+        current_status = current_resource.get("status", None)
+        ## Python == is deep equal between dicts.
+        if current_status == self.initial_status:
             return False
         return True
 
@@ -669,27 +671,6 @@ class SageMakerComponent:
                 else:
                     return False
         return False
-    
-    def _get_resource_synced_condition_time(self) -> str:
-        """ Returns the last transition time of ResourceSynced condition.
-        If ResourceSynced condition is not present, returns an empty string.
-        Args:
-            ack_statuses: The status of the custom resource.
-        Returns:
-            str: The last transition time of ResourceSynced condition.
-        
-        """
-        ack_resource = self._get_resource()
-        ack_statuses = ack_resource.get("status", None)  # Status has to be there
-        if ack_statuses == None:
-            return ""
-        conditions = ack_statuses.get("conditions", None)  # Conditions has to be there
-        if conditions == None:
-            return ""
-        for condition in conditions:
-            if condition["type"] == "ACK.ResourceSynced":
-                return condition.get("lastTransitionTime", "")
-        return ""
 
     @abstractmethod
     def _after_submit_job_request(

@@ -86,7 +86,8 @@ class SageMakerTrainingJobComponent(SageMakerComponent):
     def _submit_job_request(self, request: Dict) -> object:
 
         if self.resource_upgrade:
-            self.initial_resource_sync_time = self._get_resource_synced_condition_time()
+            ack_resource = self._get_resource()
+            self.initial_status = ack_resource.get("status", None)
             return super()._patch_custom_resource(request)
         else:
             return super()._create_resource(request, 6, 10)
