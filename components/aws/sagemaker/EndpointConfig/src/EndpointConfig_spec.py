@@ -79,7 +79,7 @@ class SageMakerEndpointConfigSpec(
         ),
         production_variants=InputValidator(
             input_type=SpecInputParsers.yaml_or_json_list,
-            description="An list of ProductionVariant objects, one for each model that you want to host at this endpoint.",
+            description="An array of ProductionVariant objects, one for each model that you want to host at this endpoint.",
             required=True,
         ),
         tags=InputValidator(
