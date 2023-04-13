@@ -10,8 +10,8 @@ import json
 @pytest.mark.parametrize(
     "test_file_dir",
     [
-        pytest.param("resources/config/ack-hosting", marks=pytest.mark.canary_test),
-        pytest.param("resources/config/ack-hosting-update"),
+        pytest.param("resources/config/ack-hosting", marks=[pytest.mark.canary_test, pytest.mark.v2]),
+        pytest.param("resources/config/ack-hosting-update", marks=pytest.mark.v2),
     ],
 )
 def test_create_v2_endpoint(kfp_client, experiment_id, boto3_session, test_file_dir):
@@ -33,8 +33,6 @@ def test_create_v2_endpoint(kfp_client, experiment_id, boto3_session, test_file_
     test_params["Arguments"]["endpoint_config_name"] = input_endpoint_config_name
     test_params["Arguments"]["endpoint_name"] = input_endpoint_name
     test_params["Arguments"]["production_variants"][0]["modelName"] = input_model_name
-
-    print(test_params)
 
     if "ExpectedEndpointConfig" in test_params.keys():
         input_second_endpoint_config_name = (
@@ -85,7 +83,8 @@ def test_create_v2_endpoint(kfp_client, experiment_id, boto3_session, test_file_
             k8s_client, input_endpoint_config_name, "endpointconfigs"
         )
         ack_utils._delete_resource(k8s_client, input_model_name, "models")
-    
+
+@pytest.mark.v2    
 def test_terminate_v2_endpoint(kfp_client, experiment_id):
     test_file_dir = "resources/config/ack-hosting"
     download_dir = utils.mkdir(os.path.join(test_file_dir + "/generated"))
