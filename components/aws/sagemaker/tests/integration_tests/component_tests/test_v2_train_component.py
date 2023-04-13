@@ -49,7 +49,7 @@ def test_trainingjobV2(kfp_client, experiment_id, test_file_dir):
 
     # Verify Training job was successful on SageMaker
     print(f"training job name: {input_job_name}")
-    train_response = ack_utils.describe_training_job(k8s_client, input_job_name)
+    train_response = ack_utils._get_resource(k8s_client, input_job_name, "trainingjobs")
     assert train_response["status"]["trainingJobStatus"] == "Completed"
 
     # Verify model artifacts output was generated from this run
