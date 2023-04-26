@@ -621,6 +621,7 @@ class SageMakerComponent:
             * if recoverable and condition set to true, print out message and return true
             (let outside polling loop goes on forever and let user decide if should stop)
             * if terminal and condition set up true, print out message and return false
+        * Returns None if there are no error conditions.
         """
         status_conditions = self._get_resource()["status"]["conditions"]
 
@@ -628,6 +629,10 @@ class SageMakerComponent:
             condition_type = condition["type"]
             condition_status = condition["status"]
             condition_message = condition.get("message", "No error message found.")
+
+            # If the controller has not consumed the update, any existing erorr will not representative of the new state.
+            if self.resource_upgrade and not self.is_update_consumed_by_controller():
+                continue
 
             if condition_type == "ACK.Terminal" and condition_status == "True":
                 logging.error(json.dumps(condition, indent=2))
